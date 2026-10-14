@@ -2,6 +2,8 @@
 
 > Parametric 3D CAD & AI Copilot for 3D Printing
 
+🌐 **Live Demo:** [https://gabrielkhenrique.github.io/printforge-studio/](https://gabrielkhenrique.github.io/printforge-studio/)
+
 PrintForge Studio is a modern, canvas-first parametric CAD application built for 3D printer owners and makers. It features an integrated Three.js viewport, tactile parametric controls, Bambu/Prusa slicer telemetry, and an autonomous AI Copilot that translates natural language requests into watertight 3D models.
 
 ## ✨ Features
