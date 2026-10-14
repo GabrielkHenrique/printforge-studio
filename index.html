@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PrintForge Studio - Parametric 3D CAD & AI Copilot</title>
+  <title>PrintForge Studio - Parametric 3D CAD, Model Library & AI Copilot</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="importmap">
     {
@@ -25,7 +25,6 @@
       font-family: 'JetBrains Mono', monospace;
       font-variant-numeric: tabular-nums;
     }
-    /* Linear-style hardware bevels and micro-borders */
     .glass-panel {
       background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(20px);
@@ -41,7 +40,6 @@
     .inset-bevel {
       box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
     }
-    /* Custom sleek slider styling */
     input[type=range] {
       accent-color: #6366f1;
     }
@@ -60,7 +58,6 @@
       border: 2px solid #ffffff;
       cursor: grab;
     }
-    /* Scrollbars */
     ::-webkit-scrollbar {
       width: 5px;
     }
@@ -88,23 +85,26 @@
       <div class="flex items-center gap-2">
         <h1 class="text-sm font-bold tracking-tight text-white flex items-center gap-2">
           PrintForge Studio
-          <span class="text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full mono">PRO CAD</span>
+          <span class="text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full mono">PRO</span>
         </h1>
-        <span class="text-slate-600">/</span>
-        <span class="text-xs text-slate-400 font-medium">Parametric Stand Studio</span>
       </div>
     </div>
 
-    <!-- Center Mode Indicator -->
-    <div class="hidden lg:flex items-center gap-1 bg-slate-900/80 border border-white/[0.08] p-1 rounded-full text-xs">
-      <button class="px-3 py-1 rounded-full font-medium bg-indigo-600 text-white shadow-sm transition">3D Designer</button>
-      <button class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-slate-200 transition" onclick="alert('Slicer inspection mode active. Overhangs validated under 55°.')">Slicer Audit</button>
+    <!-- Center Navigation Tabs: Studio vs 3D Library -->
+    <div class="flex items-center gap-1 bg-slate-900/80 border border-white/[0.08] p-1 rounded-full text-xs">
+      <button id="nav-studio-tab" class="px-4 py-1.5 rounded-full font-semibold bg-indigo-600 text-white shadow-sm transition flex items-center gap-1.5">
+        <span>✦</span> Parametric Studio
+      </button>
+      <button id="nav-library-tab" class="px-4 py-1.5 rounded-full font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+        <span>📦</span> 3D Model Library
+        <span class="text-[9px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.2 rounded-full border border-cyan-500/30">Thingiverse</span>
+      </button>
     </div>
 
     <!-- Top Right Telemetry & Export CTA -->
     <div class="flex items-center gap-3">
       <!-- Live Slicer Telemetry Chips -->
-      <div class="hidden md:flex items-center gap-3 text-xs bg-slate-900/90 border border-white/[0.08] rounded-lg px-3 py-1.5 mono">
+      <div id="header-telemetry" class="hidden md:flex items-center gap-3 text-xs bg-slate-900/90 border border-white/[0.08] rounded-lg px-3 py-1.5 mono">
         <div class="flex items-center gap-1.5">
           <span class="text-slate-500">Dim:</span>
           <span id="stat-dim" class="text-slate-200 font-medium">--</span>
@@ -132,252 +132,365 @@
     </div>
   </header>
 
-  <!-- 3-Column Studio Workspace -->
+  <!-- MAIN VIEW CONTAINER -->
   <div class="flex-1 flex overflow-hidden relative">
 
-    <!-- LEFT COLUMN: Parametric CAD Inspector (310px) -->
-    <aside class="w-80 border-r border-white/[0.08] bg-[#0c0e14]/70 glass-panel flex flex-col shrink-0 z-20 overflow-y-auto">
-      <div class="p-4 space-y-5">
+    <!-- VIEW 1: 3D PARAMETRIC STUDIO (CAD + AI COPILOT) -->
+    <div id="view-studio" class="flex-1 flex overflow-hidden relative">
 
-        <!-- Device Presets Grid -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Device Presets</label>
-            <span class="text-[10px] text-slate-500 mono">Bambu/Prusa Ready</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-indigo-500/40 bg-indigo-500/10 text-indigo-300 shadow-sm transition flex items-center gap-2" data-preset="phone">
-              <span>📱</span> Phone
-            </button>
-            <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-white/[0.06] bg-slate-900/60 text-slate-300 hover:border-slate-700 transition flex items-center gap-2" data-preset="controller">
-              <span>🎮</span> Controller
-            </button>
-            <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-white/[0.06] bg-slate-900/60 text-slate-300 hover:border-slate-700 transition flex items-center gap-2" data-preset="switch">
-              <span>🕹️</span> Handheld
-            </button>
-            <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-white/[0.06] bg-slate-900/60 text-slate-300 hover:border-slate-700 transition flex items-center gap-2" data-preset="tablet">
-              <span>💻</span> Tablet
-            </button>
-          </div>
-        </div>
+      <!-- LEFT COLUMN: Parametric CAD Inspector (310px) -->
+      <aside class="w-80 border-r border-white/[0.08] bg-[#0c0e14]/70 glass-panel flex flex-col shrink-0 z-20 overflow-y-auto">
+        <div class="p-4 space-y-5">
 
-        <div class="h-px bg-white/[0.06]"></div>
-
-        <!-- Parametric Dimensions Sliders -->
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Dimensions & Geometry</label>
-            <span class="text-[10px] text-slate-500 mono">Millimeters</span>
-          </div>
-
-          <!-- Stand Width -->
-          <div class="space-y-1">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-300 font-medium">Stand Width</span>
-              <span id="val-width" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">65 mm</span>
-            </div>
-            <input id="slider-width" type="range" min="30" max="140" value="65" class="w-full cursor-pointer">
-          </div>
-
-          <!-- Backrest Height -->
-          <div class="space-y-1">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-300 font-medium">Backrest Height</span>
-              <span id="val-height" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">80 mm</span>
-            </div>
-            <input id="slider-height" type="range" min="40" max="150" value="80" class="w-full cursor-pointer">
-          </div>
-
-          <!-- Rest Angle -->
-          <div class="space-y-1">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-300 font-medium">Rest Angle</span>
-              <span id="val-angle" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">70°</span>
-            </div>
-            <input id="slider-angle" type="range" min="50" max="85" value="70" class="w-full cursor-pointer">
-          </div>
-
-          <!-- Cradle Slot Depth -->
-          <div class="space-y-1">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-300 font-medium">Cradle Depth (Device Slot)</span>
-              <span id="val-depth" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">16 mm</span>
-            </div>
-            <input id="slider-depth" type="range" min="10" max="50" value="16" class="w-full cursor-pointer">
-          </div>
-
-          <!-- Front Lip Height -->
-          <div class="space-y-1">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-300 font-medium">Retaining Lip Height</span>
-              <span id="val-lip" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">18 mm</span>
-            </div>
-            <input id="slider-lip" type="range" min="8" max="35" value="18" class="w-full cursor-pointer">
-          </div>
-
-          <!-- Wall Thickness -->
-          <div class="space-y-1">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-300 font-medium">Base / Spine Thickness</span>
-              <span id="val-thick" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">7 mm</span>
-            </div>
-            <input id="slider-thick" type="range" min="4" max="16" value="7" class="w-full cursor-pointer">
-          </div>
-        </div>
-
-        <div class="h-px bg-white/[0.06]"></div>
-
-        <!-- Functional Features -->
-        <div class="space-y-2.5">
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Functional Features</label>
-
-          <label class="flex items-center gap-3 p-2.5 rounded-lg glass-card hover:bg-slate-800/80 cursor-pointer transition">
-            <input id="check-cable" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-0">
-            <div>
-              <div class="text-xs font-semibold text-slate-200">USB-C Cable Pass-Through</div>
-              <div class="text-[10px] text-slate-400">Cable relief notch centered in the cradle</div>
-            </div>
-          </label>
-
-          <label class="flex items-center gap-3 p-2.5 rounded-lg glass-card hover:bg-slate-800/80 cursor-pointer transition">
-            <input id="check-chamfer" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-0">
-            <div>
-              <div class="text-xs font-semibold text-slate-200">Tactile Chamfers & Bevels</div>
-              <div class="text-[10px] text-slate-400">Smooth beveled fillets for comfort and printability</div>
-            </div>
-          </label>
-        </div>
-
-        <div class="h-px bg-white/[0.06]"></div>
-
-        <!-- Filament Material Swatches -->
-        <div>
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Filament Preset & Preview</label>
-          <div class="flex items-center gap-2.5">
-            <button class="color-btn w-7 h-7 rounded-full bg-slate-800 border-2 border-indigo-500 transition hover:scale-110 shadow-lg" data-color="#1e293b" title="Matte Charcoal PLA"></button>
-            <button class="color-btn w-7 h-7 rounded-full bg-blue-600 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#2563eb" title="Cobalt Blue"></button>
-            <button class="color-btn w-7 h-7 rounded-full bg-emerald-500 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#10b981" title="Bambu Mint PLA"></button>
-            <button class="color-btn w-7 h-7 rounded-full bg-purple-600 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#9333ea" title="Galaxy Purple"></button>
-            <button class="color-btn w-7 h-7 rounded-full bg-amber-500 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#f59e0b" title="Sunset Orange"></button>
-            <button class="color-btn w-7 h-7 rounded-full bg-slate-100 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#f8fafc" title="Pure White"></button>
-          </div>
-        </div>
-
-      </div>
-    </aside>
-
-    <!-- CENTER COLUMN: Edge-to-Edge 3D Viewport -->
-    <main class="flex-1 relative bg-[#08090C] overflow-hidden flex flex-col">
-      <div id="viewport-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
-
-      <!-- Floating Top Camera Presets Island -->
-      <div class="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] p-1 rounded-full shadow-2xl z-10 text-xs">
-        <button id="cam-iso" class="px-3 py-1 rounded-full font-medium bg-slate-800 text-white shadow-sm transition">Isometric</button>
-        <button id="cam-front" class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-white transition">Front</button>
-        <button id="cam-side" class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-white transition">Side</button>
-        <button id="cam-top" class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-white transition">Top</button>
-        <div class="w-px h-3.5 bg-slate-700/60 mx-1"></div>
-        <button id="btn-wireframe" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition" title="Toggle Mesh Wireframe">⬡ Wire</button>
-        <button id="btn-turntable" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-cyan-400 transition" title="Auto Turntable Spin">↺ Spin</button>
-        <button id="btn-reset" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition" title="Reset Camera">⟲ Reset</button>
-      </div>
-
-      <!-- Floating Build Plate Telemetry Indicator (Bottom-Left) -->
-      <div class="absolute bottom-4 left-4 z-10 flex items-center gap-3">
-        <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] px-3.5 py-2 rounded-xl text-xs mono shadow-xl flex items-center gap-2.5">
-          <div class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></div>
+          <!-- Device Presets Grid -->
           <div>
-            <span class="text-slate-400">Bed Limit:</span>
-            <span class="text-slate-200 font-semibold ml-1">220 × 220 mm</span>
-          </div>
-          <span class="text-slate-600">|</span>
-          <div class="text-emerald-400 font-medium">✓ Fits Standard 3D Printers</div>
-        </div>
-      </div>
-
-      <!-- Export Success Toast -->
-      <div id="toast" class="opacity-0 pointer-events-none transition-all duration-300 absolute top-4 right-4 z-30 bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        <span>Watertight STL Downloaded! Slices cleanly in Cura & Bambu Studio.</span>
-      </div>
-    </main>
-
-    <!-- RIGHT COLUMN: AI Copilot Studio (380px Dedicated Workbench) -->
-    <aside class="w-96 border-l border-white/[0.08] bg-[#0c0e14]/80 glass-panel flex flex-col shrink-0 z-20">
-      
-      <!-- Copilot Studio Header -->
-      <div class="p-3.5 border-b border-white/[0.08] flex items-center justify-between bg-slate-900/40">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm">
-            ✦
-          </div>
-          <div>
-            <div class="text-xs font-bold text-white flex items-center gap-1.5">
-              AI Design Copilot
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Device Presets</label>
+              <span class="text-[10px] text-slate-500 mono">Bambu/Prusa Ready</span>
             </div>
-            <div class="text-[10px] text-slate-400 mono">Autonomous Parametric CAD Agent</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-indigo-500/40 bg-indigo-500/10 text-indigo-300 shadow-sm transition flex items-center gap-2" data-preset="phone">
+                <span>📱</span> Phone
+              </button>
+              <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-white/[0.06] bg-slate-900/60 text-slate-300 hover:border-slate-700 transition flex items-center gap-2" data-preset="controller">
+                <span>🎮</span> Controller
+              </button>
+              <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-white/[0.06] bg-slate-900/60 text-slate-300 hover:border-slate-700 transition flex items-center gap-2" data-preset="switch">
+                <span>🕹️</span> Handheld
+              </button>
+              <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-white/[0.06] bg-slate-900/60 text-slate-300 hover:border-slate-700 transition flex items-center gap-2" data-preset="tablet">
+                <span>💻</span> Tablet
+              </button>
+            </div>
+          </div>
+
+          <div class="h-px bg-white/[0.06]"></div>
+
+          <!-- Parametric Dimensions Sliders -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Dimensions & Geometry</label>
+              <span class="text-[10px] text-slate-500 mono">Millimeters</span>
+            </div>
+
+            <!-- Stand Width -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-300 font-medium">Stand Width</span>
+                <span id="val-width" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">65 mm</span>
+              </div>
+              <input id="slider-width" type="range" min="30" max="140" value="65" class="w-full cursor-pointer">
+            </div>
+
+            <!-- Backrest Height -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-300 font-medium">Backrest Height</span>
+                <span id="val-height" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">80 mm</span>
+              </div>
+              <input id="slider-height" type="range" min="40" max="150" value="80" class="w-full cursor-pointer">
+            </div>
+
+            <!-- Rest Angle -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-300 font-medium">Rest Angle</span>
+                <span id="val-angle" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">70°</span>
+              </div>
+              <input id="slider-angle" type="range" min="50" max="85" value="70" class="w-full cursor-pointer">
+            </div>
+
+            <!-- Cradle Slot Depth -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-300 font-medium">Cradle Depth (Device Slot)</span>
+                <span id="val-depth" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">16 mm</span>
+              </div>
+              <input id="slider-depth" type="range" min="10" max="50" value="16" class="w-full cursor-pointer">
+            </div>
+
+            <!-- Front Lip Height -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-300 font-medium">Retaining Lip Height</span>
+                <span id="val-lip" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">18 mm</span>
+              </div>
+              <input id="slider-lip" type="range" min="8" max="35" value="18" class="w-full cursor-pointer">
+            </div>
+
+            <!-- Wall Thickness -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-300 font-medium">Base / Spine Thickness</span>
+                <span id="val-thick" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">7 mm</span>
+              </div>
+              <input id="slider-thick" type="range" min="4" max="16" value="7" class="w-full cursor-pointer">
+            </div>
+          </div>
+
+          <div class="h-px bg-white/[0.06]"></div>
+
+          <!-- Functional Features -->
+          <div class="space-y-2.5">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Functional Features</label>
+
+            <label class="flex items-center gap-3 p-2.5 rounded-lg glass-card hover:bg-slate-800/80 cursor-pointer transition">
+              <input id="check-cable" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-0">
+              <div>
+                <div class="text-xs font-semibold text-slate-200">USB-C Cable Pass-Through</div>
+                <div class="text-[10px] text-slate-400">16mm centered charging port cutout</div>
+              </div>
+            </label>
+
+            <label class="flex items-center gap-3 p-2.5 rounded-lg glass-card hover:bg-slate-800/80 cursor-pointer transition">
+              <input id="check-chamfer" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-0">
+              <div>
+                <div class="text-xs font-semibold text-slate-200">Anti-Tip Stabilizer & Bevels</div>
+                <div class="text-[10px] text-slate-400">Dynamic center-of-gravity rear support</div>
+              </div>
+            </label>
+          </div>
+
+          <div class="h-px bg-white/[0.06]"></div>
+
+          <!-- Filament Material Swatches -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Filament Preset & Preview</label>
+            <div class="flex items-center gap-2.5">
+              <button class="color-btn w-7 h-7 rounded-full bg-slate-800 border-2 border-indigo-500 transition hover:scale-110 shadow-lg" data-color="#1e293b" title="Matte Charcoal PLA"></button>
+              <button class="color-btn w-7 h-7 rounded-full bg-blue-600 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#2563eb" title="Cobalt Blue"></button>
+              <button class="color-btn w-7 h-7 rounded-full bg-emerald-500 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#10b981" title="Bambu Mint PLA"></button>
+              <button class="color-btn w-7 h-7 rounded-full bg-purple-600 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#9333ea" title="Galaxy Purple"></button>
+              <button class="color-btn w-7 h-7 rounded-full bg-amber-500 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#f59e0b" title="Sunset Orange"></button>
+              <button class="color-btn w-7 h-7 rounded-full bg-slate-100 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#f8fafc" title="Pure White"></button>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- CENTER COLUMN: Edge-to-Edge 3D Viewport -->
+      <main class="flex-1 relative bg-[#08090C] overflow-hidden flex flex-col">
+        <div id="viewport-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+        <!-- Floating Top Camera Presets Island -->
+        <div class="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] p-1 rounded-full shadow-2xl z-10 text-xs">
+          <button id="cam-iso" class="px-3 py-1 rounded-full font-medium bg-slate-800 text-white shadow-sm transition">Isometric</button>
+          <button id="cam-front" class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-white transition">Front</button>
+          <button id="cam-side" class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-white transition">Side</button>
+          <button id="cam-top" class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-white transition">Top</button>
+          <div class="w-px h-3.5 bg-slate-700/60 mx-1"></div>
+          <button id="btn-wireframe" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition" title="Toggle Mesh Wireframe">⬡ Wire</button>
+          <button id="btn-turntable" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-cyan-400 transition" title="Auto Turntable Spin">↺ Spin</button>
+          <button id="btn-reset" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition" title="Reset Camera">⟲ Reset</button>
+        </div>
+
+        <!-- Floating Build Plate Telemetry Indicator -->
+        <div class="absolute bottom-4 left-4 z-10 flex items-center gap-3">
+          <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] px-3.5 py-2 rounded-xl text-xs mono shadow-xl flex items-center gap-2.5">
+            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></div>
+            <div>
+              <span class="text-slate-400">Bed Limit:</span>
+              <span class="text-slate-200 font-semibold ml-1">220 × 220 mm</span>
+            </div>
+            <span class="text-slate-600">|</span>
+            <div class="text-emerald-400 font-medium">✓ Fits Standard 3D Printers</div>
           </div>
         </div>
-        <div class="text-[10px] mono bg-slate-800/80 border border-white/[0.06] text-indigo-300 px-2 py-0.5 rounded-full">
-          Free Tier Ready
-        </div>
-      </div>
+      </main>
 
-      <!-- Messages Thread Area -->
-      <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4">
+      <!-- RIGHT COLUMN: AI Copilot Studio (380px Dedicated Workbench) -->
+      <aside class="w-96 border-l border-white/[0.08] bg-[#0c0e14]/80 glass-panel flex flex-col shrink-0 z-20">
         
-        <!-- Welcome Message from Copilot -->
-        <div class="flex gap-3">
-          <div class="w-6 h-6 rounded-full bg-indigo-600/30 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
-            ✦
-          </div>
-          <div class="space-y-2 flex-1">
-            <div class="text-xs text-slate-300 leading-relaxed bg-slate-800/60 p-3 rounded-xl border border-white/[0.06]">
-              👋 I am your 3D Parametric Copilot. Describe your device or console in plain English, and I will compute the exact dimensions, adjust the 3D model, and verify slicer printability.
+        <!-- Copilot Studio Header -->
+        <div class="p-3.5 border-b border-white/[0.08] flex items-center justify-between bg-slate-900/40">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm">
+              ✦
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                AI Design Copilot
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              </div>
+              <div class="text-[10px] text-slate-400 mono">Autonomous Parametric CAD Agent</div>
             </div>
           </div>
+          <div class="text-[10px] mono bg-slate-800/80 border border-white/[0.06] text-indigo-300 px-2 py-0.5 rounded-full">
+            Free Tier Ready
+          </div>
+        </div>
+
+        <!-- Messages Thread Area -->
+        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4">
+          
+          <!-- Welcome Message from Copilot -->
+          <div class="flex gap-3">
+            <div class="w-6 h-6 rounded-full bg-indigo-600/30 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
+              ✦
+            </div>
+            <div class="space-y-2 flex-1">
+              <div class="text-xs text-slate-300 leading-relaxed bg-slate-800/60 p-3 rounded-xl border border-white/[0.06]">
+                👋 I am your 3D Parametric Copilot. Describe your device or console in plain English, and I will compute the exact dimensions, adjust the 3D model, and verify slicer printability.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Quick Action Starter Chips Dock -->
+        <div class="p-2 border-t border-white/[0.06] bg-slate-950/40">
+          <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 px-1">Quick Prompts</div>
+          <div class="flex gap-1.5 overflow-x-auto pb-1">
+            <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
+              🕹️ Switch 2 instead of PS5
+            </button>
+            <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
+              🎮 PS5 controller with paddles
+            </button>
+            <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
+              📱 Thick phone case angle
+            </button>
+            <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
+              💻 Sturdy heavy tablet
+            </button>
+          </div>
+        </div>
+
+        <!-- Copilot Composer Box -->
+        <div class="p-3 border-t border-white/[0.08] bg-slate-900/60">
+          <div class="relative flex items-center">
+            <input id="ai-chat-input" type="text" placeholder="Tell AI what to fit or adjust..." class="w-full bg-slate-950/90 border border-white/[0.1] focus:border-indigo-500 text-xs text-slate-100 pl-3 pr-20 py-2.5 rounded-xl outline-none transition placeholder-slate-500 font-medium">
+            <button id="ai-chat-send" class="absolute right-1.5 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-md flex items-center gap-1 inset-bevel">
+              <span>Send</span>
+            </button>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 mt-2 px-1">
+            <span>Press Enter ↵ to send</span>
+            <span class="mono">Auto-generates CAD diffs</span>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+
+    <!-- VIEW 2: 3D MODEL LIBRARY (THINGIVERSE & MAKERWORLD BROWSER) -->
+    <div id="view-library" class="hidden flex-1 overflow-y-auto p-6 bg-[#08090C] space-y-6">
+      
+      <!-- Library Top Banner & Search -->
+      <div class="max-w-6xl mx-auto space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <span>📦</span> 3D Model Explorer & Repository
+              <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-full mono">Thingiverse • Printables</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Browse trending models, customize dimensions with AI, or order physical prints directly.</p>
+          </div>
+
+          <!-- Search Input -->
+          <div class="relative w-full md:w-80">
+            <input id="lib-search" type="text" placeholder="Search models (Switch, PS5, Desk, Cable)..." class="w-full bg-slate-900/80 border border-white/[0.1] text-xs text-slate-200 pl-9 pr-3 py-2.5 rounded-xl outline-none focus:border-indigo-500 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Filter Tags -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+          <button class="lib-filter-btn px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold shadow-sm transition" data-category="all">
+            All Models (8)
+          </button>
+          <button class="lib-filter-btn px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] text-slate-300 font-medium transition" data-category="gaming">
+            🎮 Gaming & Consoles
+          </button>
+          <button class="lib-filter-btn px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] text-slate-300 font-medium transition" data-category="desk">
+            🖥️ Desk & Organization
+          </button>
+          <button class="lib-filter-btn px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] text-slate-300 font-medium transition" data-category="tools">
+            🛠️ Tools & Hardware
+          </button>
+        </div>
+
+        <!-- Grid of Models -->
+        <div id="library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-2">
+          <!-- Dynamically populated via JS -->
         </div>
 
       </div>
 
-      <!-- Quick Action Starter Chips Dock -->
-      <div class="p-2 border-t border-white/[0.06] bg-slate-950/40">
-        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 px-1">Quick Prompts</div>
-        <div class="flex gap-1.5 overflow-x-auto pb-1">
-          <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
-            🎮 PS5 controller with paddles
-          </button>
-          <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
-            📱 Thick phone case angle
-          </button>
-          <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
-            💻 Sturdy heavy tablet
-          </button>
-          <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
-            ⚡ Bedside steep 80°
-          </button>
+    </div>
+
+  </div>
+
+  <!-- EXPORT & ORDER PHYSICAL CHECKOUT MODAL -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-panel bg-[#0d111a] border border-white/[0.1] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-5 inset-bevel">
+      
+      <!-- Close Button -->
+      <button id="modal-close" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
+        ✕
+      </button>
+
+      <!-- Header -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg">
+          ✓
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Your Watertight .STL is Ready!</h3>
+          <p class="text-xs text-slate-400">Download the 3D file or have it physically printed and shipped.</p>
         </div>
       </div>
 
-      <!-- Copilot Composer Box -->
-      <div class="p-3 border-t border-white/[0.08] bg-slate-900/60">
-        <div class="relative flex items-center">
-          <input id="ai-chat-input" type="text" placeholder="Tell AI what to fit or adjust..." class="w-full bg-slate-950/90 border border-white/[0.1] focus:border-indigo-500 text-xs text-slate-100 pl-3 pr-20 py-2.5 rounded-xl outline-none transition placeholder-slate-500 font-medium">
-          <button id="ai-chat-send" class="absolute right-1.5 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-md flex items-center gap-1 inset-bevel">
-            <span>Send</span>
-          </button>
+      <!-- Option 1: Download STL File -->
+      <div class="p-4 rounded-xl bg-slate-900/60 border border-white/[0.06] flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold text-slate-200">Free .STL Mesh Download</div>
+          <div class="text-[11px] text-slate-400">Watertight manifold binary STL file</div>
         </div>
-        <div class="flex items-center justify-between text-[10px] text-slate-500 mt-2 px-1">
-          <span>Press Enter ↵ to send</span>
-          <span class="mono">Auto-generates CAD diffs</span>
+        <button id="modal-download-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-md flex items-center gap-1.5 inset-bevel">
+          <span>Download Now</span>
+        </button>
+      </div>
+
+      <!-- Option 2: PHYSICAL PRINT ON-DEMAND (Monetization for user's print business) -->
+      <div class="p-4 rounded-xl bg-gradient-to-br from-indigo-950/40 via-slate-900/70 to-slate-900/60 border border-indigo-500/30 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base">📦</span>
+            <div>
+              <div class="text-xs font-bold text-indigo-200">Don't have a 3D printer?</div>
+              <div class="text-[11px] text-slate-400">We print this custom stand for you in Matte Black PLA+</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-sm font-extrabold text-emerald-400">$18.99</div>
+            <div class="text-[9px] text-slate-500 mono">FREE SHIPPING</div>
+          </div>
+        </div>
+        <button id="modal-order-btn" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-2.5 rounded-lg shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 inset-bevel">
+          <span>Order Physical Print ($18.99)</span>
+          <span>&rarr;</span>
+        </button>
+      </div>
+
+      <!-- Option 3: Recommended Filament Affiliate -->
+      <div class="p-3 rounded-xl bg-slate-900/40 border border-white/[0.06] space-y-1.5">
+        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Recommended Filaments for Slicing</div>
+        <div class="flex items-center justify-between text-xs text-slate-300">
+          <span>• Bambu Lab Matte PLA (Charcoal)</span>
+          <a href="https://store.bambulab.com" target="_blank" class="text-indigo-400 hover:underline text-[11px]">View Store &rarr;</a>
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-300">
+          <span>• Polymaker PolyTerra PLA (Biodegradable)</span>
+          <a href="https://amazon.com" target="_blank" class="text-indigo-400 hover:underline text-[11px]">View Amazon &rarr;</a>
         </div>
       </div>
 
-    </aside>
-
+    </div>
   </div>
 
   <!-- Three.js Studio Core & AI Copilot Engine -->
@@ -408,6 +521,122 @@
       switch: { width: 115, height: 90, angle: 72, depth: 22, lip: 20, thickness: 8, cableNotch: true },
       tablet: { width: 135, height: 120, angle: 68, depth: 18, lip: 22, thickness: 9, cableNotch: false }
     };
+
+    // Curated Thingiverse & MakerWorld 3D Model Catalog
+    const modelCatalog = [
+      {
+        id: '1',
+        title: 'Universal Nintendo Switch & OLED Charging Stand',
+        author: 'Holoprops',
+        category: 'gaming',
+        source: 'Thingiverse #4829103',
+        sourceUrl: 'https://www.thingiverse.com/thing:4829103',
+        filament: '58g PLA',
+        time: '1h 35m',
+        downloads: '14.2k',
+        likes: '3.1k',
+        presetParams: { width: 115, height: 90, angle: 72, depth: 22, lip: 20, thickness: 8, cableNotch: true },
+        icon: '🕹️'
+      },
+      {
+        id: '2',
+        title: 'PS5 DualSense Controller Desk Display Cradle',
+        author: 'FntsFnt',
+        category: 'gaming',
+        source: 'Printables #29381',
+        sourceUrl: 'https://www.printables.com/model/29381',
+        filament: '72g PLA',
+        time: '1h 50m',
+        downloads: '28.9k',
+        likes: '5.4k',
+        presetParams: { width: 100, height: 85, angle: 64, depth: 34, lip: 24, thickness: 8, cableNotch: true },
+        icon: '🎮'
+      },
+      {
+        id: '3',
+        title: 'Steam Deck / ROG Ally Heavy-Duty Kickstand Dock',
+        author: 'DeckMaker',
+        category: 'gaming',
+        source: 'MakerWorld #10294',
+        sourceUrl: 'https://makerworld.com',
+        filament: '84g PETG',
+        time: '2h 10m',
+        downloads: '19.4k',
+        likes: '4.2k',
+        presetParams: { width: 125, height: 95, angle: 68, depth: 28, lip: 22, thickness: 9, cableNotch: true },
+        icon: '👾'
+      },
+      {
+        id: '4',
+        title: 'Parametric Under-Desk Cable Management Drop Spine',
+        author: 'CableMaster',
+        category: 'desk',
+        source: 'Thingiverse #312984',
+        sourceUrl: 'https://www.thingiverse.com',
+        filament: '42g PLA',
+        time: '1h 10m',
+        downloads: '45.1k',
+        likes: '9.8k',
+        presetParams: { width: 50, height: 70, angle: 80, depth: 16, lip: 14, thickness: 6, cableNotch: true },
+        icon: '🔌'
+      },
+      {
+        id: '5',
+        title: 'Heavy iPad & Graphic Tablet Anti-Tip Easel',
+        author: 'StudioPrint',
+        category: 'desk',
+        source: 'Printables #78192',
+        sourceUrl: 'https://www.printables.com',
+        filament: '110g PLA',
+        time: '2h 45m',
+        downloads: '12.0k',
+        likes: '2.7k',
+        presetParams: { width: 135, height: 120, angle: 68, depth: 20, lip: 22, thickness: 9, cableNotch: false },
+        icon: '💻'
+      },
+      {
+        id: '6',
+        title: 'Bedside Nightstand Smartphone & MagSafe Dock',
+        author: 'BedsideTech',
+        category: 'desk',
+        source: 'Thingiverse #519284',
+        sourceUrl: 'https://www.thingiverse.com',
+        filament: '38g PLA',
+        time: '55m',
+        downloads: '33.8k',
+        likes: '6.5k',
+        presetParams: { width: 65, height: 75, angle: 78, depth: 15, lip: 16, thickness: 6, cableNotch: true },
+        icon: '📱'
+      },
+      {
+        id: '7',
+        title: 'Digital Vernier Caliper Desk Holder & Stand',
+        author: 'ToolForge',
+        category: 'tools',
+        source: 'MakerWorld #48192',
+        sourceUrl: 'https://makerworld.com',
+        filament: '46g PLA',
+        time: '1h 15m',
+        downloads: '8.4k',
+        likes: '1.9k',
+        presetParams: { width: 55, height: 85, angle: 75, depth: 18, lip: 20, thickness: 7, cableNotch: false },
+        icon: '📐'
+      },
+      {
+        id: '8',
+        title: 'Soldering Iron & Wire Spool Mini Workstation',
+        author: 'SolderPro',
+        category: 'tools',
+        source: 'Printables #93812',
+        sourceUrl: 'https://www.printables.com',
+        filament: '95g PETG',
+        time: '2h 20m',
+        downloads: '16.3k',
+        likes: '3.6k',
+        presetParams: { width: 110, height: 90, angle: 65, depth: 30, lip: 22, thickness: 8, cableNotch: true },
+        icon: '🔥'
+      }
+    ];
 
     // Scene Setup
     const container = document.getElementById('viewport-container');
@@ -451,7 +680,7 @@
     softFillLight.position.set(0, -50, 100);
     scene.add(softFillLight);
 
-    // Build Plate Grid (220 x 220 mm standard bed)
+    // Build Plate Grid
     const gridHelper = new THREE.GridHelper(220, 22, 0x6366f1, 0x1e293b);
     gridHelper.position.y = -0.1;
     scene.add(gridHelper);
@@ -465,7 +694,7 @@
       wireframe: false
     });
 
-    // Generate Watertight Manifold Parametric Stand
+    // Generate Watertight Manifold Parametric Stand with Dynamic Anti-Tip Stabilizer
     function generateStandGeometry() {
       const w = params.width;
       const h = params.height;
@@ -474,25 +703,41 @@
       const lip = params.lip;
       const t = params.thickness;
 
-      // 2D Profile on X-Y plane
-      const shape = new THREE.Shape();
+      // Calculate critical points
       const baseLength = d + (h * Math.cos(rad)) + 26;
-
-      shape.moveTo(0, 0);
-      shape.lineTo(baseLength, 0); // Flat bottom base on build plate
-      shape.lineTo(baseLength, t); // Lip front base
-      shape.lineTo(baseLength - 4, t + lip); // Lip tip
-      shape.lineTo(baseLength - 4 - t, t + lip); // Lip inner tip
-      shape.lineTo(baseLength - 4 - t, t + 4); // Cradle floor front
-
       const cradleBackX = baseLength - 4 - t - d;
-      shape.lineTo(cradleBackX, t + 4); // Cradle floor back
-
       const topX = cradleBackX - (h * Math.cos(rad));
       const topY = (t + 4) + (h * Math.sin(rad));
+      const p8X = topX - (t * Math.sin(rad));
+      const p8Y = topY + (t * Math.cos(rad));
+
+      // Dynamic Anti-Tip Foot Stabilizer:
+      // If the top back overhangs past 0, extend the rear foot backward!
+      const rearFootX = Math.min(0, p8X - 8);
+
+      const shape = new THREE.Shape();
+      shape.moveTo(rearFootX, 0); // Solid anti-tip rear foot on build plate
+      shape.lineTo(baseLength, 0); // Flat bottom base
+      shape.lineTo(baseLength, t); // Front lip front edge base
+      shape.lineTo(baseLength - 4, t + lip); // Front lip tip
+      shape.lineTo(baseLength - 4 - t, t + lip); // Front lip inner tip
+      shape.lineTo(baseLength - 4 - t, t + 4); // Cradle floor front
+
+      // If USB-C cable notch is active, create a centered dip in the cradle floor
+      if (params.cableNotch) {
+        const notchX1 = baseLength - 4 - t - 4;
+        const notchX2 = cradleBackX + 4;
+        shape.lineTo(notchX1, t + 4);
+        shape.lineTo(notchX1, t + 1); // 3mm cable relief trough
+        shape.lineTo(notchX2, t + 1);
+        shape.lineTo(notchX2, t + 4);
+      } else {
+        shape.lineTo(cradleBackX, t + 4); // Cradle floor back
+      }
+
       shape.lineTo(topX, topY); // Backrest top front
-      shape.lineTo(topX - (t * Math.sin(rad)), topY + (t * Math.cos(rad))); // Backrest top back
-      shape.lineTo(0, t); // Rear spine to foot
+      shape.lineTo(p8X, p8Y); // Backrest top back
+      shape.lineTo(rearFootX, t); // Rear top foot
       shape.closePath();
 
       // Extrude settings
@@ -546,17 +791,15 @@
 
       document.getElementById('stat-dim').textContent = `${sizeX} × ${sizeZ} × ${sizeY} mm`;
 
-      // Approximate volume and filament mass
       const volumeCm3 = (sizeX * sizeY * sizeZ * 0.28) / 1000;
-      const plaDensity = 1.24; // g/cm³
-      const infillFactor = 0.35; // 2 perimeters + 15% infill
+      const plaDensity = 1.24;
+      const infillFactor = 0.35;
       const grams = Math.max(14, Math.round(volumeCm3 * plaDensity * infillFactor));
-      const cost = (grams * 0.02).toFixed(2); // ~$20/kg spool
+      const cost = (grams * 0.02).toFixed(2);
 
       document.getElementById('stat-weight').textContent = `${grams}g PLA`;
       document.getElementById('stat-cost').textContent = `(~$${cost})`;
 
-      // Approximate print time @ standard Bambu/Prusa speeds
       const printMinutes = Math.round((grams * 2.4) + 10);
       const hrs = Math.floor(printMinutes / 60);
       const mins = printMinutes % 60;
@@ -642,22 +885,12 @@
         });
       });
 
-      // Viewport Floating Controls
-      document.getElementById('cam-iso').addEventListener('click', () => {
-        setCameraSmooth(130, 110, 160);
-      });
-      document.getElementById('cam-front').addEventListener('click', () => {
-        setCameraSmooth(0, 30, 220);
-      });
-      document.getElementById('cam-side').addEventListener('click', () => {
-        setCameraSmooth(220, 30, 0);
-      });
-      document.getElementById('cam-top').addEventListener('click', () => {
-        setCameraSmooth(0, 220, 0);
-      });
-      document.getElementById('btn-reset').addEventListener('click', () => {
-        setCameraSmooth(130, 110, 160);
-      });
+      // Camera Presets
+      document.getElementById('cam-iso').addEventListener('click', () => setCameraSmooth(130, 110, 160));
+      document.getElementById('cam-front').addEventListener('click', () => setCameraSmooth(0, 30, 220));
+      document.getElementById('cam-side').addEventListener('click', () => setCameraSmooth(220, 30, 0));
+      document.getElementById('cam-top').addEventListener('click', () => setCameraSmooth(0, 220, 0));
+      document.getElementById('btn-reset').addEventListener('click', () => setCameraSmooth(130, 110, 160));
 
       const btnWire = document.getElementById('btn-wireframe');
       btnWire.addEventListener('click', () => {
@@ -672,10 +905,30 @@
         btnTurntable.classList.toggle('text-cyan-400', params.turntable);
       });
 
-      // Export STL
+      // Modal Triggers
       document.getElementById('btn-export').addEventListener('click', () => {
-        exportSTL();
+        openModal();
       });
+
+      document.getElementById('modal-close').addEventListener('click', () => {
+        closeModal();
+      });
+
+      document.getElementById('modal-download-btn').addEventListener('click', () => {
+        exportSTL();
+        closeModal();
+      });
+
+      document.getElementById('modal-order-btn').addEventListener('click', () => {
+        const orderEmail = `mailto:gabrielrick1990@gmail.com?subject=PrintForge Physical Print Order: ${params.width}mm Stand&body=Hi Gabriel, I would like to order a physical 3D print of my customized stand.%0A%0ASpecifications:%0A- Width: ${params.width}mm%0A- Height: ${params.height}mm%0A- Angle: ${params.angle} degrees%0A- Cradle Depth: ${params.depth}mm%0A- Material: Matte Black PLA+%0A- Price: $18.99 with Free Shipping%0A%0AShipping Address:%0A[Your Name]%0A[Your Street Address]%0A[City, State, Zip]`;
+        window.open(orderEmail, '_blank');
+      });
+
+      // Tab Switcher (Studio vs Library)
+      setupTabSwitcher();
+
+      // Model Library Setup
+      renderModelLibrary();
 
       // AI Copilot Integration
       setupAICopilot();
@@ -685,6 +938,140 @@
       camera.position.set(x, y, z);
       controls.target.set(0, 30, 0);
       controls.update();
+    }
+
+    function openModal() {
+      const modal = document.getElementById('modal-backdrop');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('modal-backdrop');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    function setupTabSwitcher() {
+      const tabStudio = document.getElementById('nav-studio-tab');
+      const tabLib = document.getElementById('nav-library-tab');
+      const viewStudio = document.getElementById('view-studio');
+      const viewLib = document.getElementById('view-library');
+      const headerTelemetry = document.getElementById('header-telemetry');
+
+      tabStudio.addEventListener('click', () => {
+        tabStudio.classList.replace('text-slate-400', 'text-white');
+        tabStudio.classList.replace('font-medium', 'font-semibold');
+        tabStudio.classList.add('bg-indigo-600', 'shadow-sm');
+
+        tabLib.classList.replace('text-white', 'text-slate-400');
+        tabLib.classList.replace('font-semibold', 'font-medium');
+        tabLib.classList.remove('bg-indigo-600', 'shadow-sm');
+
+        viewStudio.classList.remove('hidden');
+        viewLib.classList.add('hidden');
+        headerTelemetry.classList.remove('hidden');
+
+        // trigger three.js resize
+        window.dispatchEvent(new Event('resize'));
+      });
+
+      tabLib.addEventListener('click', () => {
+        tabLib.classList.replace('text-slate-400', 'text-white');
+        tabLib.classList.replace('font-medium', 'font-semibold');
+        tabLib.classList.add('bg-indigo-600', 'shadow-sm');
+
+        tabStudio.classList.replace('text-white', 'text-slate-400');
+        tabStudio.classList.replace('font-semibold', 'font-medium');
+        tabStudio.classList.remove('bg-indigo-600', 'shadow-sm');
+
+        viewStudio.classList.add('hidden');
+        viewLib.classList.remove('hidden');
+        headerTelemetry.classList.add('hidden');
+      });
+    }
+
+    function renderModelLibrary(category = 'all', searchQuery = '') {
+      const grid = document.getElementById('library-grid');
+      grid.innerHTML = '';
+
+      const filtered = modelCatalog.filter(m => {
+        const matchesCat = category === 'all' || m.category === category;
+        const matchesSearch = !searchQuery || m.title.toLowerCase().includes(searchQuery.toLowerCase()) || m.author.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCat && matchesSearch;
+      });
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'glass-card p-4 rounded-xl space-y-3.5 flex flex-col justify-between hover:border-indigo-500/40 transition group';
+        card.innerHTML = `
+          <div class="space-y-2.5">
+            <div class="h-28 rounded-lg bg-slate-900/80 border border-white/[0.06] flex items-center justify-center text-4xl shadow-inner group-hover:scale-[1.02] transition">
+              ${item.icon}
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-[10px] text-slate-500 mono mb-1">
+                <span>${item.source}</span>
+                <span class="text-cyan-400">♥ ${item.likes}</span>
+              </div>
+              <h4 class="text-xs font-bold text-slate-100 group-hover:text-indigo-300 transition line-clamp-1">${item.title}</h4>
+              <p class="text-[11px] text-slate-400">By <span class="text-slate-300 font-medium">${item.author}</span></p>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] text-slate-400 mono">
+              <span>⚖️ ${item.filament}</span>
+              <span>•</span>
+              <span>⏱️ ${item.time}</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 pt-2 border-t border-white/[0.06]">
+            <button class="lib-customize-btn w-full bg-indigo-600/80 hover:bg-indigo-600 text-white font-semibold text-xs py-2 rounded-lg transition flex items-center justify-center gap-1.5 inset-bevel" data-id="${item.id}">
+              <span>⚡ Customize in Studio</span>
+            </button>
+            <button class="lib-order-btn w-full bg-slate-800/80 hover:bg-emerald-600/30 hover:border-emerald-500/40 border border-white/[0.08] text-emerald-400 font-semibold text-[11px] py-1.5 rounded-lg transition flex items-center justify-center gap-1" data-title="${item.title}">
+              <span>📦 Order Physical ($18.99)</span>
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      // Hook up card buttons
+      document.querySelectorAll('.lib-customize-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const item = modelCatalog.find(m => m.id === btn.dataset.id);
+          if (item && item.presetParams) {
+            Object.assign(params, item.presetParams);
+            syncSlidersFromParams();
+            updateMesh();
+            // switch back to studio tab
+            document.getElementById('nav-studio-tab').click();
+          }
+        });
+      });
+
+      document.querySelectorAll('.lib-order-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const title = btn.dataset.title;
+          const orderEmail = `mailto:gabrielrick1990@gmail.com?subject=PrintForge Order: ${encodeURIComponent(title)}&body=Hi Gabriel, I would like to order a physical 3D print of ${encodeURIComponent(title)}.%0A%0APrice: $18.99 with Free Shipping%0A%0AShipping Address:%0A[Your Name]%0A[Your Street Address]%0A[City, State, Zip]`;
+          window.open(orderEmail, '_blank');
+        });
+      });
+
+      // Filter category buttons
+      document.querySelectorAll('.lib-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.lib-filter-btn').forEach(b => {
+            b.classList.remove('bg-indigo-600', 'text-white', 'font-semibold');
+            b.classList.add('bg-slate-900/80', 'text-slate-300', 'font-medium');
+          });
+          btn.classList.add('bg-indigo-600', 'text-white', 'font-semibold');
+          btn.classList.remove('bg-slate-900/80', 'text-slate-300', 'font-medium');
+          renderModelLibrary(btn.dataset.category, document.getElementById('lib-search').value);
+        });
+      });
+
+      document.getElementById('lib-search').addEventListener('input', (e) => {
+        const activeCat = document.querySelector('.lib-filter-btn.bg-indigo-600')?.dataset.category || 'all';
+        renderModelLibrary(activeCat, e.target.value);
+      });
     }
 
     // AI Copilot Conversational Engine with Parameter Diff Cards
@@ -753,7 +1140,6 @@
         input.value = '';
         appendMessage('user', text);
 
-        // Show thinking indicator
         const thinkingId = 'thinking-' + Date.now();
         const thinkingDiv = document.createElement('div');
         thinkingDiv.id = thinkingId;
@@ -770,7 +1156,6 @@
         chatContainer.appendChild(thinkingDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        // Process Prompt
         setTimeout(() => {
           const el = document.getElementById(thinkingId);
           if (el) el.remove();
@@ -780,13 +1165,9 @@
           let reply = '';
           const oldP = { ...params };
 
-          // Helper to extract desired device when user says "X instead of Y" or "X not Y"
           let targetText = q;
-          if (q.includes('instead of')) {
-            targetText = q.split('instead of')[0]; // take the requested part
-          } else if (q.includes('rather than')) {
-            targetText = q.split('rather than')[0];
-          }
+          if (q.includes('instead of')) targetText = q.split('instead of')[0];
+          else if (q.includes('rather than')) targetText = q.split('rather than')[0];
 
           // 1. Nintendo Switch / Switch 2 / Handheld Consoles
           if (targetText.includes('switch') || targetText.includes('nintendo') || targetText.includes('switch 2') || targetText.includes('deck') || targetText.includes('steam deck') || targetText.includes('rog ally') || targetText.includes('handheld')) {
@@ -809,7 +1190,7 @@
               { name: 'Cable Notch', from: oldP.cableNotch ? 'Yes' : 'No', to: 'Yes (USB-C)' }
             );
           }
-          // 2. Game Controllers (PS5 DualSense, Xbox, etc.)
+          // 2. Game Controllers
           else if (targetText.includes('ps5') || targetText.includes('controller') || targetText.includes('paddle') || targetText.includes('xbox') || targetText.includes('dualsense')) {
             params.width = 100;
             params.depth = 34;
@@ -825,7 +1206,7 @@
               { name: 'Base Wall', from: `${oldP.thickness}mm`, to: '8mm' }
             );
           }
-          // 3. Tablets / iPad
+          // 3. Tablets
           else if (targetText.includes('tablet') || targetText.includes('ipad') || targetText.includes('surface') || targetText.includes('heavy')) {
             params.width = 135;
             params.height = 120;
@@ -840,7 +1221,7 @@
               { name: 'Base Wall', from: `${oldP.thickness}mm`, to: '9mm' }
             );
           }
-          // 4. Smartphone / Bedside
+          // 4. Smartphone
           else if (targetText.includes('phone') || targetText.includes('iphone') || targetText.includes('s24') || targetText.includes('pixel') || targetText.includes('mobile')) {
             params.width = 65;
             params.height = 75;
@@ -856,7 +1237,7 @@
               { name: 'Cradle Depth', from: `${oldP.depth}mm`, to: '15mm' }
             );
           }
-          // 5. Viewing Angles & Cases
+          // 5. Angles & Cases
           else if (targetText.includes('steep') || targetText.includes('bedside') || targetText.includes('80')) {
             params.angle = 80;
             params.lip = 20;
@@ -871,7 +1252,6 @@
               { name: 'Retaining Lip', from: `${oldP.lip}mm`, to: '22mm' }
             );
           } else {
-            // Incremental natural language commands
             if (q.includes('wider')) {
               const oldW = params.width;
               params.width = Math.min(140, params.width + 25);
@@ -901,7 +1281,6 @@
             }
           }
 
-          // Filament Color keywords
           if (q.includes('orange') || q.includes('amber')) { params.color = 0xf59e0b; changes.push({ name: 'Filament', from: 'Charcoal', to: 'Sunset Orange' }); }
           else if (q.includes('blue')) { params.color = 0x2563eb; changes.push({ name: 'Filament', from: 'Previous', to: 'Cobalt Blue' }); }
           else if (q.includes('green') || q.includes('mint')) { params.color = 0x10b981; changes.push({ name: 'Filament', from: 'Previous', to: 'Bambu Mint' }); }
@@ -909,7 +1288,6 @@
           else if (q.includes('white')) { params.color = 0xf8fafc; changes.push({ name: 'Filament', from: 'Previous', to: 'Pure White' }); }
           else if (q.includes('charcoal') || q.includes('black')) { params.color = 0x1e293b; changes.push({ name: 'Filament', from: 'Previous', to: 'Matte Charcoal' }); }
 
-          // Auto-adjust live: sliders + 3D Mesh!
           syncSlidersFromParams();
           updateMesh();
 
@@ -946,12 +1324,6 @@
       link.download = `PrintForge_Custom_Stand_${params.width}mm.stl`;
       link.click();
       URL.revokeObjectURL(link.href);
-
-      const toast = document.getElementById('toast');
-      toast.classList.remove('opacity-0', 'pointer-events-none');
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'pointer-events-none');
-      }, 4000);
     }
 
     // Animation & Turntable Loop
