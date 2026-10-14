@@ -780,47 +780,98 @@
           let reply = '';
           const oldP = { ...params };
 
-          if (q.includes('ps5') || q.includes('controller') || q.includes('paddle') || q.includes('xbox') || q.includes('dualsense')) {
+          // Helper to extract desired device when user says "X instead of Y" or "X not Y"
+          let targetText = q;
+          if (q.includes('instead of')) {
+            targetText = q.split('instead of')[0]; // take the requested part
+          } else if (q.includes('rather than')) {
+            targetText = q.split('rather than')[0];
+          }
+
+          // 1. Nintendo Switch / Switch 2 / Handheld Consoles
+          if (targetText.includes('switch') || targetText.includes('nintendo') || targetText.includes('switch 2') || targetText.includes('deck') || targetText.includes('steam deck') || targetText.includes('rog ally') || targetText.includes('handheld')) {
+            const isSwitch2 = targetText.includes('switch 2');
+            params.width = isSwitch2 ? 120 : 115;
+            params.height = 90;
+            params.angle = 72;
+            params.depth = isSwitch2 ? 22 : 18;
+            params.lip = 20;
+            params.thickness = 8;
+            params.cableNotch = true;
+            reply = isSwitch2 
+              ? '✦ Auto-tuned for Nintendo Switch 2: Widened stance to 120mm to accommodate the larger 8.4" chassis, expanded cradle depth to 22mm, and enabled centered USB-C charging relief.'
+              : '✦ Auto-tuned for Nintendo Switch / Steam Deck: 115mm wide footprint with 72° tabletop gaming angle and centered USB-C pass-through.';
+            
+            changes.push(
+              { name: 'Width', from: `${oldP.width}mm`, to: `${params.width}mm` },
+              { name: 'Cradle Depth', from: `${oldP.depth}mm`, to: `${params.depth}mm` },
+              { name: 'Rest Angle', from: `${oldP.angle}°`, to: '72°' },
+              { name: 'Cable Notch', from: oldP.cableNotch ? 'Yes' : 'No', to: 'Yes (USB-C)' }
+            );
+          }
+          // 2. Game Controllers (PS5 DualSense, Xbox, etc.)
+          else if (targetText.includes('ps5') || targetText.includes('controller') || targetText.includes('paddle') || targetText.includes('xbox') || targetText.includes('dualsense')) {
             params.width = 100;
             params.depth = 34;
             params.lip = 24;
             params.angle = 64;
             params.thickness = 8;
-            reply = 'Tuned cradle geometry for game controllers with rear paddle clearance. Lowered angle to 64° to ensure an ultra-stable center of gravity.';
+            params.cableNotch = true;
+            reply = '✦ Auto-tuned for Game Controller: Lowered angle to 64° and expanded cradle depth to 34mm for rear paddle/trigger clearance.';
             changes.push(
               { name: 'Width', from: `${oldP.width}mm`, to: '100mm' },
               { name: 'Cradle Depth', from: `${oldP.depth}mm`, to: '34mm' },
               { name: 'Rest Angle', from: `${oldP.angle}°`, to: '64°' },
               { name: 'Base Wall', from: `${oldP.thickness}mm`, to: '8mm' }
             );
-          } else if (q.includes('tablet') || q.includes('ipad') || q.includes('heavy')) {
+          }
+          // 3. Tablets / iPad
+          else if (targetText.includes('tablet') || targetText.includes('ipad') || targetText.includes('surface') || targetText.includes('heavy')) {
             params.width = 135;
             params.height = 120;
             params.angle = 68;
             params.depth = 20;
             params.thickness = 9;
             params.lip = 22;
-            reply = 'Reinforced stand architecture for heavy tablets. Thickened base to 9mm and expanded footprint to 135mm to prevent accidental tipping.';
+            reply = '✦ Auto-tuned for Tablet / iPad: Heavy-duty 9mm wall thickness and wide 135mm base to eliminate tipping.';
             changes.push(
               { name: 'Width', from: `${oldP.width}mm`, to: '135mm' },
               { name: 'Height', from: `${oldP.height}mm`, to: '120mm' },
               { name: 'Base Wall', from: `${oldP.thickness}mm`, to: '9mm' }
             );
-          } else if (q.includes('steep') || q.includes('bedside') || q.includes('80')) {
+          }
+          // 4. Smartphone / Bedside
+          else if (targetText.includes('phone') || targetText.includes('iphone') || targetText.includes('s24') || targetText.includes('pixel') || targetText.includes('mobile')) {
+            params.width = 65;
+            params.height = 75;
+            params.angle = 70;
+            params.depth = 15;
+            params.lip = 16;
+            params.thickness = 6;
+            params.cableNotch = true;
+            reply = '✦ Auto-tuned for Smartphone: Compact 65mm footprint with front lip and bottom cable groove.';
+            changes.push(
+              { name: 'Width', from: `${oldP.width}mm`, to: '65mm' },
+              { name: 'Height', from: `${oldP.height}mm`, to: '75mm' },
+              { name: 'Cradle Depth', from: `${oldP.depth}mm`, to: '15mm' }
+            );
+          }
+          // 5. Viewing Angles & Cases
+          else if (targetText.includes('steep') || targetText.includes('bedside') || targetText.includes('80')) {
             params.angle = 80;
             params.lip = 20;
-            reply = 'Set backrest to 80° steep viewing angle. Ideal for bedside nightstands, video calls, or eye-level desk use.';
+            reply = '✦ Set backrest to 80° steep viewing angle, optimal for eye-level video calls and nightstand clocks.';
             changes.push({ name: 'Rest Angle', from: `${oldP.angle}°`, to: '80°' });
-          } else if (q.includes('thick') || q.includes('case') || q.includes('otterbox')) {
+          } else if (targetText.includes('thick') || targetText.includes('case') || targetText.includes('otterbox')) {
             params.depth = 26;
             params.lip = 22;
-            reply = 'Expanded cradle slot depth to 26mm with raised retaining lip to support rugged protective phone cases.';
+            reply = '✦ Widened cradle slot to 26mm with reinforced retaining lip for thick protective cases.';
             changes.push(
               { name: 'Cradle Depth', from: `${oldP.depth}mm`, to: '26mm' },
               { name: 'Retaining Lip', from: `${oldP.lip}mm`, to: '22mm' }
             );
           } else {
-            // General natural language adjustments
+            // Incremental natural language commands
             if (q.includes('wider')) {
               const oldW = params.width;
               params.width = Math.min(140, params.width + 25);
@@ -838,28 +889,33 @@
             }
 
             if (changes.length > 0) {
-              reply = 'Updated parametric model to match your requested tolerances.';
+              reply = '✦ Parametric adjustments applied live.';
             } else {
-              reply = 'Optimized model geometry and verified clean draft angles for slicer support-free printing.';
-              changes.push({ name: 'Overhang Angle', from: 'Standard', to: 'Safe (<55°)' });
+              params.width = 110;
+              params.depth = 22;
+              reply = '✦ Interpreted specification and adjusted parametric geometry for optimal 3D print stability.';
+              changes.push(
+                { name: 'Width', from: `${oldP.width}mm`, to: '110mm' },
+                { name: 'Depth', from: `${oldP.depth}mm`, to: '22mm' }
+              );
             }
           }
 
-          // Filament Color keyword detection
-          if (q.includes('orange')) params.color = 0xf59e0b;
-          else if (q.includes('blue')) params.color = 0x2563eb;
-          else if (q.includes('green') || q.includes('mint')) params.color = 0x10b981;
-          else if (q.includes('purple')) params.color = 0x9333ea;
-          else if (q.includes('white')) params.color = 0xf8fafc;
-          else if (q.includes('charcoal') || q.includes('black')) params.color = 0x1e293b;
+          // Filament Color keywords
+          if (q.includes('orange') || q.includes('amber')) { params.color = 0xf59e0b; changes.push({ name: 'Filament', from: 'Charcoal', to: 'Sunset Orange' }); }
+          else if (q.includes('blue')) { params.color = 0x2563eb; changes.push({ name: 'Filament', from: 'Previous', to: 'Cobalt Blue' }); }
+          else if (q.includes('green') || q.includes('mint')) { params.color = 0x10b981; changes.push({ name: 'Filament', from: 'Previous', to: 'Bambu Mint' }); }
+          else if (q.includes('purple')) { params.color = 0x9333ea; changes.push({ name: 'Filament', from: 'Previous', to: 'Galaxy Purple' }); }
+          else if (q.includes('white')) { params.color = 0xf8fafc; changes.push({ name: 'Filament', from: 'Previous', to: 'Pure White' }); }
+          else if (q.includes('charcoal') || q.includes('black')) { params.color = 0x1e293b; changes.push({ name: 'Filament', from: 'Previous', to: 'Matte Charcoal' }); }
 
-          // Apply changes to UI and 3D Canvas
+          // Auto-adjust live: sliders + 3D Mesh!
           syncSlidersFromParams();
           updateMesh();
 
           const diffData = {
             changes,
-            weightImpact: '+12g PLA'
+            weightImpact: '+14g PLA'
           };
 
           appendMessage('ai', reply, diffData);
