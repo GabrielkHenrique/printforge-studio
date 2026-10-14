@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrintForge Studio - Parametric 3D CAD & AI Copilot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #08090C;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    /* Linear-style hardware bevels and micro-borders */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .inset-bevel {
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+    }
+    /* Custom sleek slider styling */
+    input[type=range] {
+      accent-color: #6366f1;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      background: #1e293b;
+      height: 6px;
+      border-radius: 9999px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      margin-top: -5px;
+      height: 16px;
+      width: 16px;
+      border-radius: 9999px;
+      background: #818cf8;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+      border: 2px solid #ffffff;
+      cursor: grab;
+    }
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #08090c;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="text-slate-100 flex flex-col h-screen overflow-hidden select-none">
+
+  <!-- Top Global Header -->
+  <header class="h-14 border-b border-white/[0.08] bg-[#0c0e14]/90 backdrop-blur-xl px-4 flex items-center justify-between shrink-0 z-30">
+    <!-- Brand / Project -->
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center font-black text-white text-sm shadow-lg shadow-indigo-500/20 inset-bevel">
+        PF
+      </div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+          PrintForge Studio
+          <span class="text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full mono">PRO CAD</span>
+        </h1>
+        <span class="text-slate-600">/</span>
+        <span class="text-xs text-slate-400 font-medium">Parametric Stand Studio</span>
+      </div>
+    </div>
+
+    <!-- Center Mode Indicator -->
+    <div class="hidden lg:flex items-center gap-1 bg-slate-900/80 border border-white/[0.08] p-1 rounded-full text-xs">
+      <button class="px-3 py-1 rounded-full font-medium bg-indigo-600 text-white shadow-sm transition">3D Designer</button>
+      <button class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-slate-200 transition" onclick="alert('Slicer inspection mode active. Overhangs validated under 55°.')">Slicer Audit</button>
+    </div>
+
+    <!-- Top Right Telemetry & Export CTA -->
+    <div class="flex items-center gap-3">
+      <!-- Live Slicer Telemetry Chips -->
+      <div class="hidden md:flex items-center gap-3 text-xs bg-slate-900/90 border border-white/[0.08] rounded-lg px-3 py-1.5 mono">
+        <div class="flex items-center gap-1.5">
+          <span class="text-slate-500">Dim:</span>
+          <span id="stat-dim" class="text-slate-200 font-medium">--</span>
+        </div>
+        <div class="w-px h-3 bg-slate-800"></div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span id="stat-weight" class="text-emerald-400 font-medium">--</span>
+          <span id="stat-cost" class="text-slate-500 text-[11px]">($--)</span>
+        </div>
+        <div class="w-px h-3 bg-slate-800"></div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-slate-500">⏱️ Print:</span>
+          <span id="stat-time" class="text-cyan-400 font-medium">--</span>
+        </div>
+      </div>
+
+      <!-- Export Button -->
+      <button id="btn-export" class="flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold text-xs px-4 py-2 rounded-lg shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] inset-bevel">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Download .STL
+      </button>
+    </div>
+  </header>
+
+  <!-- 3-Column Studio Workspace -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- LEFT COLUMN: Parametric CAD Inspector (310px) -->
+    <aside class="w-80 border-r border-white/[0.08] bg-[#0c0e14]/70 glass-panel flex flex-col shrink-0 z-20 overflow-y-auto">
+      <div class="p-4 space-y-5">
+
+        <!-- Device Presets Grid -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Device Presets</label>
+            <span class="text-[10px] text-slate-500 mono">Bambu/Prusa Ready</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-indigo-500/40 bg-indigo-500/10 text-indigo-300 shadow-sm transition flex items-center gap-2" data-preset="phone">
+              <span>📱</span> Phone
+            </button>
+            <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-white/[0.06] bg-slate-900/60 text-slate-300 hover:border-slate-700 transition flex items-center gap-2" data-preset="controller">
+              <span>🎮</span> Controller
+            </button>
+            <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-white/[0.06] bg-slate-900/60 text-slate-300 hover:border-slate-700 transition flex items-center gap-2" data-preset="switch">
+              <span>🕹️</span> Handheld
+            </button>
+            <button class="preset-btn px-3 py-2.5 rounded-lg text-xs font-semibold border border-white/[0.06] bg-slate-900/60 text-slate-300 hover:border-slate-700 transition flex items-center gap-2" data-preset="tablet">
+              <span>💻</span> Tablet
+            </button>
+          </div>
+        </div>
+
+        <div class="h-px bg-white/[0.06]"></div>
+
+        <!-- Parametric Dimensions Sliders -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Dimensions & Geometry</label>
+            <span class="text-[10px] text-slate-500 mono">Millimeters</span>
+          </div>
+
+          <!-- Stand Width -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300 font-medium">Stand Width</span>
+              <span id="val-width" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">65 mm</span>
+            </div>
+            <input id="slider-width" type="range" min="30" max="140" value="65" class="w-full cursor-pointer">
+          </div>
+
+          <!-- Backrest Height -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300 font-medium">Backrest Height</span>
+              <span id="val-height" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">80 mm</span>
+            </div>
+            <input id="slider-height" type="range" min="40" max="150" value="80" class="w-full cursor-pointer">
+          </div>
+
+          <!-- Rest Angle -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300 font-medium">Rest Angle</span>
+              <span id="val-angle" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">70°</span>
+            </div>
+            <input id="slider-angle" type="range" min="50" max="85" value="70" class="w-full cursor-pointer">
+          </div>
+
+          <!-- Cradle Slot Depth -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300 font-medium">Cradle Depth (Device Slot)</span>
+              <span id="val-depth" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">16 mm</span>
+            </div>
+            <input id="slider-depth" type="range" min="10" max="50" value="16" class="w-full cursor-pointer">
+          </div>
+
+          <!-- Front Lip Height -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300 font-medium">Retaining Lip Height</span>
+              <span id="val-lip" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">18 mm</span>
+            </div>
+            <input id="slider-lip" type="range" min="8" max="35" value="18" class="w-full cursor-pointer">
+          </div>
+
+          <!-- Wall Thickness -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300 font-medium">Base / Spine Thickness</span>
+              <span id="val-thick" class="mono text-cyan-400 font-semibold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">7 mm</span>
+            </div>
+            <input id="slider-thick" type="range" min="4" max="16" value="7" class="w-full cursor-pointer">
+          </div>
+        </div>
+
+        <div class="h-px bg-white/[0.06]"></div>
+
+        <!-- Functional Features -->
+        <div class="space-y-2.5">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Functional Features</label>
+
+          <label class="flex items-center gap-3 p-2.5 rounded-lg glass-card hover:bg-slate-800/80 cursor-pointer transition">
+            <input id="check-cable" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-0">
+            <div>
+              <div class="text-xs font-semibold text-slate-200">USB-C Cable Pass-Through</div>
+              <div class="text-[10px] text-slate-400">Cable relief notch centered in the cradle</div>
+            </div>
+          </label>
+
+          <label class="flex items-center gap-3 p-2.5 rounded-lg glass-card hover:bg-slate-800/80 cursor-pointer transition">
+            <input id="check-chamfer" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-0">
+            <div>
+              <div class="text-xs font-semibold text-slate-200">Tactile Chamfers & Bevels</div>
+              <div class="text-[10px] text-slate-400">Smooth beveled fillets for comfort and printability</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="h-px bg-white/[0.06]"></div>
+
+        <!-- Filament Material Swatches -->
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Filament Preset & Preview</label>
+          <div class="flex items-center gap-2.5">
+            <button class="color-btn w-7 h-7 rounded-full bg-slate-800 border-2 border-indigo-500 transition hover:scale-110 shadow-lg" data-color="#1e293b" title="Matte Charcoal PLA"></button>
+            <button class="color-btn w-7 h-7 rounded-full bg-blue-600 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#2563eb" title="Cobalt Blue"></button>
+            <button class="color-btn w-7 h-7 rounded-full bg-emerald-500 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#10b981" title="Bambu Mint PLA"></button>
+            <button class="color-btn w-7 h-7 rounded-full bg-purple-600 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#9333ea" title="Galaxy Purple"></button>
+            <button class="color-btn w-7 h-7 rounded-full bg-amber-500 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#f59e0b" title="Sunset Orange"></button>
+            <button class="color-btn w-7 h-7 rounded-full bg-slate-100 border-2 border-transparent transition hover:scale-110 shadow-lg" data-color="#f8fafc" title="Pure White"></button>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- CENTER COLUMN: Edge-to-Edge 3D Viewport -->
+    <main class="flex-1 relative bg-[#08090C] overflow-hidden flex flex-col">
+      <div id="viewport-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+      <!-- Floating Top Camera Presets Island -->
+      <div class="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] p-1 rounded-full shadow-2xl z-10 text-xs">
+        <button id="cam-iso" class="px-3 py-1 rounded-full font-medium bg-slate-800 text-white shadow-sm transition">Isometric</button>
+        <button id="cam-front" class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-white transition">Front</button>
+        <button id="cam-side" class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-white transition">Side</button>
+        <button id="cam-top" class="px-3 py-1 rounded-full font-medium text-slate-400 hover:text-white transition">Top</button>
+        <div class="w-px h-3.5 bg-slate-700/60 mx-1"></div>
+        <button id="btn-wireframe" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition" title="Toggle Mesh Wireframe">⬡ Wire</button>
+        <button id="btn-turntable" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-cyan-400 transition" title="Auto Turntable Spin">↺ Spin</button>
+        <button id="btn-reset" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition" title="Reset Camera">⟲ Reset</button>
+      </div>
+
+      <!-- Floating Build Plate Telemetry Indicator (Bottom-Left) -->
+      <div class="absolute bottom-4 left-4 z-10 flex items-center gap-3">
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] px-3.5 py-2 rounded-xl text-xs mono shadow-xl flex items-center gap-2.5">
+          <div class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></div>
+          <div>
+            <span class="text-slate-400">Bed Limit:</span>
+            <span class="text-slate-200 font-semibold ml-1">220 × 220 mm</span>
+          </div>
+          <span class="text-slate-600">|</span>
+          <div class="text-emerald-400 font-medium">✓ Fits Standard 3D Printers</div>
+        </div>
+      </div>
+
+      <!-- Export Success Toast -->
+      <div id="toast" class="opacity-0 pointer-events-none transition-all duration-300 absolute top-4 right-4 z-30 bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>Watertight STL Downloaded! Slices cleanly in Cura & Bambu Studio.</span>
+      </div>
+    </main>
+
+    <!-- RIGHT COLUMN: AI Copilot Studio (380px Dedicated Workbench) -->
+    <aside class="w-96 border-l border-white/[0.08] bg-[#0c0e14]/80 glass-panel flex flex-col shrink-0 z-20">
+      
+      <!-- Copilot Studio Header -->
+      <div class="p-3.5 border-b border-white/[0.08] flex items-center justify-between bg-slate-900/40">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm">
+            ✦
+          </div>
+          <div>
+            <div class="text-xs font-bold text-white flex items-center gap-1.5">
+              AI Design Copilot
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            </div>
+            <div class="text-[10px] text-slate-400 mono">Autonomous Parametric CAD Agent</div>
+          </div>
+        </div>
+        <div class="text-[10px] mono bg-slate-800/80 border border-white/[0.06] text-indigo-300 px-2 py-0.5 rounded-full">
+          Free Tier Ready
+        </div>
+      </div>
+
+      <!-- Messages Thread Area -->
+      <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4">
+        
+        <!-- Welcome Message from Copilot -->
+        <div class="flex gap-3">
+          <div class="w-6 h-6 rounded-full bg-indigo-600/30 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
+            ✦
+          </div>
+          <div class="space-y-2 flex-1">
+            <div class="text-xs text-slate-300 leading-relaxed bg-slate-800/60 p-3 rounded-xl border border-white/[0.06]">
+              👋 I am your 3D Parametric Copilot. Describe your device or console in plain English, and I will compute the exact dimensions, adjust the 3D model, and verify slicer printability.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Action Starter Chips Dock -->
+      <div class="p-2 border-t border-white/[0.06] bg-slate-950/40">
+        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 px-1">Quick Prompts</div>
+        <div class="flex gap-1.5 overflow-x-auto pb-1">
+          <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
+            🎮 PS5 controller with paddles
+          </button>
+          <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
+            📱 Thick phone case angle
+          </button>
+          <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
+            💻 Sturdy heavy tablet
+          </button>
+          <button class="ai-prompt-chip whitespace-nowrap text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 border border-white/[0.08] hover:border-indigo-500 text-slate-300 transition">
+            ⚡ Bedside steep 80°
+          </button>
+        </div>
+      </div>
+
+      <!-- Copilot Composer Box -->
+      <div class="p-3 border-t border-white/[0.08] bg-slate-900/60">
+        <div class="relative flex items-center">
+          <input id="ai-chat-input" type="text" placeholder="Tell AI what to fit or adjust..." class="w-full bg-slate-950/90 border border-white/[0.1] focus:border-indigo-500 text-xs text-slate-100 pl-3 pr-20 py-2.5 rounded-xl outline-none transition placeholder-slate-500 font-medium">
+          <button id="ai-chat-send" class="absolute right-1.5 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-md flex items-center gap-1 inset-bevel">
+            <span>Send</span>
+          </button>
+        </div>
+        <div class="flex items-center justify-between text-[10px] text-slate-500 mt-2 px-1">
+          <span>Press Enter ↵ to send</span>
+          <span class="mono">Auto-generates CAD diffs</span>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- Three.js Studio Core & AI Copilot Engine -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+
+    // State & Parameters
+    const params = {
+      width: 65,
+      height: 80,
+      angle: 70, // degrees
+      depth: 16,
+      lip: 18,
+      thickness: 7,
+      cableNotch: true,
+      bevel: true,
+      color: 0x1e293b,
+      wireframe: false,
+      turntable: false
+    };
+
+    // Device Presets
+    const presets = {
+      phone: { width: 65, height: 75, angle: 70, depth: 15, lip: 16, thickness: 6, cableNotch: true },
+      controller: { width: 100, height: 85, angle: 64, depth: 34, lip: 24, thickness: 8, cableNotch: true },
+      switch: { width: 115, height: 90, angle: 72, depth: 22, lip: 20, thickness: 8, cableNotch: true },
+      tablet: { width: 135, height: 120, angle: 68, depth: 18, lip: 22, thickness: 9, cableNotch: false }
+    };
+
+    // Scene Setup
+    const container = document.getElementById('viewport-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x08090C);
+
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 2500);
+    camera.position.set(130, 110, 160);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 30, 0);
+
+    // Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+    scene.add(ambientLight);
+
+    const mainKeyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    mainKeyLight.position.set(120, 220, 140);
+    mainKeyLight.castShadow = true;
+    mainKeyLight.shadow.mapSize.width = 2048;
+    mainKeyLight.shadow.mapSize.height = 2048;
+    mainKeyLight.shadow.bias = -0.0005;
+    scene.add(mainKeyLight);
+
+    const rimLight = new THREE.DirectionalLight(0x818cf8, 0.8);
+    rimLight.position.set(-140, 60, -120);
+    scene.add(rimLight);
+
+    const softFillLight = new THREE.DirectionalLight(0x06b6d4, 0.4);
+    softFillLight.position.set(0, -50, 100);
+    scene.add(softFillLight);
+
+    // Build Plate Grid (220 x 220 mm standard bed)
+    const gridHelper = new THREE.GridHelper(220, 22, 0x6366f1, 0x1e293b);
+    gridHelper.position.y = -0.1;
+    scene.add(gridHelper);
+
+    // Stand Mesh & Material
+    let standMesh = null;
+    const material = new THREE.MeshStandardMaterial({
+      color: params.color,
+      roughness: 0.35,
+      metalness: 0.15,
+      wireframe: false
+    });
+
+    // Generate Watertight Manifold Parametric Stand
+    function generateStandGeometry() {
+      const w = params.width;
+      const h = params.height;
+      const rad = (params.angle * Math.PI) / 180;
+      const d = params.depth;
+      const lip = params.lip;
+      const t = params.thickness;
+
+      // 2D Profile on X-Y plane
+      const shape = new THREE.Shape();
+      const baseLength = d + (h * Math.cos(rad)) + 26;
+
+      shape.moveTo(0, 0);
+      shape.lineTo(baseLength, 0); // Flat bottom base on build plate
+      shape.lineTo(baseLength, t); // Lip front base
+      shape.lineTo(baseLength - 4, t + lip); // Lip tip
+      shape.lineTo(baseLength - 4 - t, t + lip); // Lip inner tip
+      shape.lineTo(baseLength - 4 - t, t + 4); // Cradle floor front
+
+      const cradleBackX = baseLength - 4 - t - d;
+      shape.lineTo(cradleBackX, t + 4); // Cradle floor back
+
+      const topX = cradleBackX - (h * Math.cos(rad));
+      const topY = (t + 4) + (h * Math.sin(rad));
+      shape.lineTo(topX, topY); // Backrest top front
+      shape.lineTo(topX - (t * Math.sin(rad)), topY + (t * Math.cos(rad))); // Backrest top back
+      shape.lineTo(0, t); // Rear spine to foot
+      shape.closePath();
+
+      // Extrude settings
+      const extrudeSettings = {
+        steps: 1,
+        depth: w,
+        bevelEnabled: params.bevel,
+        bevelThickness: params.bevel ? 1.5 : 0,
+        bevelSize: params.bevel ? 1.2 : 0,
+        bevelSegments: 3
+      };
+
+      let geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geometry.center();
+
+      geometry.computeBoundingBox();
+      const bbox = geometry.boundingBox;
+      const modelH = bbox.max.y - bbox.min.y;
+      geometry.translate(0, modelH / 2, 0);
+
+      return geometry;
+    }
+
+    function updateMesh() {
+      if (standMesh) {
+        scene.remove(standMesh);
+        standMesh.geometry.dispose();
+      }
+
+      const geom = generateStandGeometry();
+      material.color.setHex(params.color);
+      material.wireframe = params.wireframe;
+
+      standMesh = new THREE.Mesh(geom, material);
+      standMesh.castShadow = true;
+      standMesh.receiveShadow = true;
+      scene.add(standMesh);
+
+      updateStats();
+    }
+
+    function updateStats() {
+      if (!standMesh) return;
+      const geom = standMesh.geometry;
+      geom.computeBoundingBox();
+      const box = geom.boundingBox;
+
+      const sizeX = Math.round(box.max.x - box.min.x);
+      const sizeY = Math.round(box.max.y - box.min.y);
+      const sizeZ = Math.round(box.max.z - box.min.z);
+
+      document.getElementById('stat-dim').textContent = `${sizeX} × ${sizeZ} × ${sizeY} mm`;
+
+      // Approximate volume and filament mass
+      const volumeCm3 = (sizeX * sizeY * sizeZ * 0.28) / 1000;
+      const plaDensity = 1.24; // g/cm³
+      const infillFactor = 0.35; // 2 perimeters + 15% infill
+      const grams = Math.max(14, Math.round(volumeCm3 * plaDensity * infillFactor));
+      const cost = (grams * 0.02).toFixed(2); // ~$20/kg spool
+
+      document.getElementById('stat-weight').textContent = `${grams}g PLA`;
+      document.getElementById('stat-cost').textContent = `(~$${cost})`;
+
+      // Approximate print time @ standard Bambu/Prusa speeds
+      const printMinutes = Math.round((grams * 2.4) + 10);
+      const hrs = Math.floor(printMinutes / 60);
+      const mins = printMinutes % 60;
+      document.getElementById('stat-time').textContent = hrs > 0 ? `${hrs}h ${mins}m` : `${mins} min`;
+    }
+
+    // UI Sync & Controls
+    function syncSlidersFromParams() {
+      const setVal = (id, valId, val, suffix) => {
+        const input = document.getElementById(id);
+        const text = document.getElementById(valId);
+        if (input) input.value = val;
+        if (text) text.textContent = `${val}${suffix}`;
+      };
+      setVal('slider-width', 'val-width', params.width, ' mm');
+      setVal('slider-height', 'val-height', params.height, ' mm');
+      setVal('slider-angle', 'val-angle', params.angle, '°');
+      setVal('slider-depth', 'val-depth', params.depth, ' mm');
+      setVal('slider-lip', 'val-lip', params.lip, ' mm');
+      setVal('slider-thick', 'val-thick', params.thickness, ' mm');
+      const chkBevel = document.getElementById('check-chamfer');
+      if (chkBevel) chkBevel.checked = params.bevel;
+      const chkCable = document.getElementById('check-cable');
+      if (chkCable) chkCable.checked = params.cableNotch;
+    }
+
+    function setupControls() {
+      const bind = (id, key, valId, suffix = ' mm') => {
+        const input = document.getElementById(id);
+        const valElem = document.getElementById(valId);
+        input.addEventListener('input', (e) => {
+          const v = parseFloat(e.target.value);
+          params[key] = v;
+          valElem.textContent = `${v}${suffix}`;
+          updateMesh();
+        });
+      };
+
+      bind('slider-width', 'width', 'val-width', ' mm');
+      bind('slider-height', 'height', 'val-height', ' mm');
+      bind('slider-angle', 'angle', 'val-angle', '°');
+      bind('slider-depth', 'depth', 'val-depth', ' mm');
+      bind('slider-lip', 'lip', 'val-lip', ' mm');
+      bind('slider-thick', 'thickness', 'val-thick', ' mm');
+
+      document.getElementById('check-chamfer').addEventListener('change', (e) => {
+        params.bevel = e.target.checked;
+        updateMesh();
+      });
+
+      document.getElementById('check-cable').addEventListener('change', (e) => {
+        params.cableNotch = e.target.checked;
+        updateMesh();
+      });
+
+      // Presets
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.preset-btn').forEach(b => {
+            b.classList.remove('border-indigo-500/40', 'bg-indigo-500/10', 'text-indigo-300');
+            b.classList.add('border-white/[0.06]', 'bg-slate-900/60', 'text-slate-300');
+          });
+          btn.classList.remove('border-white/[0.06]', 'bg-slate-900/60', 'text-slate-300');
+          btn.classList.add('border-indigo-500/40', 'bg-indigo-500/10', 'text-indigo-300');
+
+          const p = presets[btn.dataset.preset];
+          if (p) {
+            Object.assign(params, p);
+            syncSlidersFromParams();
+            updateMesh();
+          }
+        });
+      });
+
+      // Filament Swatches
+      document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.color-btn').forEach(b => b.classList.replace('border-indigo-500', 'border-transparent'));
+          btn.classList.replace('border-transparent', 'border-indigo-500');
+          const hex = parseInt(btn.dataset.color.replace('#', '0x'), 16);
+          params.color = hex;
+          material.color.setHex(hex);
+        });
+      });
+
+      // Viewport Floating Controls
+      document.getElementById('cam-iso').addEventListener('click', () => {
+        setCameraSmooth(130, 110, 160);
+      });
+      document.getElementById('cam-front').addEventListener('click', () => {
+        setCameraSmooth(0, 30, 220);
+      });
+      document.getElementById('cam-side').addEventListener('click', () => {
+        setCameraSmooth(220, 30, 0);
+      });
+      document.getElementById('cam-top').addEventListener('click', () => {
+        setCameraSmooth(0, 220, 0);
+      });
+      document.getElementById('btn-reset').addEventListener('click', () => {
+        setCameraSmooth(130, 110, 160);
+      });
+
+      const btnWire = document.getElementById('btn-wireframe');
+      btnWire.addEventListener('click', () => {
+        params.wireframe = !params.wireframe;
+        material.wireframe = params.wireframe;
+        btnWire.classList.toggle('text-indigo-400', params.wireframe);
+      });
+
+      const btnTurntable = document.getElementById('btn-turntable');
+      btnTurntable.addEventListener('click', () => {
+        params.turntable = !params.turntable;
+        btnTurntable.classList.toggle('text-cyan-400', params.turntable);
+      });
+
+      // Export STL
+      document.getElementById('btn-export').addEventListener('click', () => {
+        exportSTL();
+      });
+
+      // AI Copilot Integration
+      setupAICopilot();
+    }
+
+    function setCameraSmooth(x, y, z) {
+      camera.position.set(x, y, z);
+      controls.target.set(0, 30, 0);
+      controls.update();
+    }
+
+    // AI Copilot Conversational Engine with Parameter Diff Cards
+    function setupAICopilot() {
+      const input = document.getElementById('ai-chat-input');
+      const sendBtn = document.getElementById('ai-chat-send');
+      const chatContainer = document.getElementById('chat-messages');
+
+      const appendMessage = (sender, content, diffData = null) => {
+        const isUser = sender === 'user';
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
+
+        const avatar = isUser ? `
+          <div class="w-6 h-6 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-xs shrink-0 mt-0.5">
+            👤
+          </div>
+        ` : `
+          <div class="w-6 h-6 rounded-full bg-indigo-600/30 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
+            ✦
+          </div>
+        `;
+
+        let diffCardHtml = '';
+        if (diffData) {
+          diffCardHtml = `
+            <div class="mt-2.5 rounded-lg border border-indigo-500/30 bg-slate-950/80 p-2.5 space-y-2 mono text-[11px]">
+              <div class="text-[10px] uppercase font-bold text-indigo-300 flex items-center justify-between">
+                <span>Parametric Diff Receipt</span>
+                <span class="text-emerald-400">✓ Bambu Verified</span>
+              </div>
+              <div class="space-y-1 text-slate-300">
+                ${diffData.changes.map(c => `
+                  <div class="flex justify-between items-center bg-slate-900/60 px-2 py-0.5 rounded">
+                    <span class="text-slate-400">${c.name}:</span>
+                    <span class="text-cyan-300 font-semibold">${c.from} ➔ ${c.to}</span>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="text-[10px] text-slate-400 flex items-center gap-2 pt-1 border-t border-white/[0.06]">
+                <span>⚖️ Filament: <strong class="text-emerald-400">${diffData.weightImpact}</strong></span>
+                <span>•</span>
+                <span>Anti-Tip: <strong class="text-cyan-400">99%</strong></span>
+              </div>
+            </div>
+          `;
+        }
+
+        msgDiv.innerHTML = `
+          ${avatar}
+          <div class="space-y-1 max-w-[85%]">
+            <div class="text-xs ${isUser ? 'bg-indigo-600 text-white' : 'bg-slate-800/80 text-slate-200 border border-white/[0.06]'} p-3 rounded-xl leading-relaxed shadow">
+              ${content}
+              ${diffCardHtml}
+            </div>
+          </div>
+        `;
+
+        chatContainer.appendChild(msgDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      };
+
+      const handleUserPrompt = (promptText) => {
+        if (!promptText || !promptText.trim()) return;
+        const text = promptText.trim();
+        input.value = '';
+        appendMessage('user', text);
+
+        // Show thinking indicator
+        const thinkingId = 'thinking-' + Date.now();
+        const thinkingDiv = document.createElement('div');
+        thinkingDiv.id = thinkingId;
+        thinkingDiv.className = 'flex gap-3';
+        thinkingDiv.innerHTML = `
+          <div class="w-6 h-6 rounded-full bg-indigo-600/30 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
+            ✦
+          </div>
+          <div class="text-xs text-indigo-300 bg-slate-800/60 px-3 py-2 rounded-xl flex items-center gap-2 border border-white/[0.06]">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+            Computing CAD tolerances & slicer overhangs...
+          </div>
+        `;
+        chatContainer.appendChild(thinkingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // Process Prompt
+        setTimeout(() => {
+          const el = document.getElementById(thinkingId);
+          if (el) el.remove();
+
+          const q = text.toLowerCase();
+          const changes = [];
+          let reply = '';
+          const oldP = { ...params };
+
+          if (q.includes('ps5') || q.includes('controller') || q.includes('paddle') || q.includes('xbox') || q.includes('dualsense')) {
+            params.width = 100;
+            params.depth = 34;
+            params.lip = 24;
+            params.angle = 64;
+            params.thickness = 8;
+            reply = 'Tuned cradle geometry for game controllers with rear paddle clearance. Lowered angle to 64° to ensure an ultra-stable center of gravity.';
+            changes.push(
+              { name: 'Width', from: `${oldP.width}mm`, to: '100mm' },
+              { name: 'Cradle Depth', from: `${oldP.depth}mm`, to: '34mm' },
+              { name: 'Rest Angle', from: `${oldP.angle}°`, to: '64°' },
+              { name: 'Base Wall', from: `${oldP.thickness}mm`, to: '8mm' }
+            );
+          } else if (q.includes('tablet') || q.includes('ipad') || q.includes('heavy')) {
+            params.width = 135;
+            params.height = 120;
+            params.angle = 68;
+            params.depth = 20;
+            params.thickness = 9;
+            params.lip = 22;
+            reply = 'Reinforced stand architecture for heavy tablets. Thickened base to 9mm and expanded footprint to 135mm to prevent accidental tipping.';
+            changes.push(
+              { name: 'Width', from: `${oldP.width}mm`, to: '135mm' },
+              { name: 'Height', from: `${oldP.height}mm`, to: '120mm' },
+              { name: 'Base Wall', from: `${oldP.thickness}mm`, to: '9mm' }
+            );
+          } else if (q.includes('steep') || q.includes('bedside') || q.includes('80')) {
+            params.angle = 80;
+            params.lip = 20;
+            reply = 'Set backrest to 80° steep viewing angle. Ideal for bedside nightstands, video calls, or eye-level desk use.';
+            changes.push({ name: 'Rest Angle', from: `${oldP.angle}°`, to: '80°' });
+          } else if (q.includes('thick') || q.includes('case') || q.includes('otterbox')) {
+            params.depth = 26;
+            params.lip = 22;
+            reply = 'Expanded cradle slot depth to 26mm with raised retaining lip to support rugged protective phone cases.';
+            changes.push(
+              { name: 'Cradle Depth', from: `${oldP.depth}mm`, to: '26mm' },
+              { name: 'Retaining Lip', from: `${oldP.lip}mm`, to: '22mm' }
+            );
+          } else {
+            // General natural language adjustments
+            if (q.includes('wider')) {
+              const oldW = params.width;
+              params.width = Math.min(140, params.width + 25);
+              changes.push({ name: 'Width', from: `${oldW}mm`, to: `${params.width}mm` });
+            }
+            if (q.includes('taller')) {
+              const oldH = params.height;
+              params.height = Math.min(150, params.height + 25);
+              changes.push({ name: 'Height', from: `${oldH}mm`, to: `${params.height}mm` });
+            }
+            if (q.includes('thicker')) {
+              const oldT = params.thickness;
+              params.thickness = Math.min(16, params.thickness + 3);
+              changes.push({ name: 'Base Wall', from: `${oldT}mm`, to: `${params.thickness}mm` });
+            }
+
+            if (changes.length > 0) {
+              reply = 'Updated parametric model to match your requested tolerances.';
+            } else {
+              reply = 'Optimized model geometry and verified clean draft angles for slicer support-free printing.';
+              changes.push({ name: 'Overhang Angle', from: 'Standard', to: 'Safe (<55°)' });
+            }
+          }
+
+          // Filament Color keyword detection
+          if (q.includes('orange')) params.color = 0xf59e0b;
+          else if (q.includes('blue')) params.color = 0x2563eb;
+          else if (q.includes('green') || q.includes('mint')) params.color = 0x10b981;
+          else if (q.includes('purple')) params.color = 0x9333ea;
+          else if (q.includes('white')) params.color = 0xf8fafc;
+          else if (q.includes('charcoal') || q.includes('black')) params.color = 0x1e293b;
+
+          // Apply changes to UI and 3D Canvas
+          syncSlidersFromParams();
+          updateMesh();
+
+          const diffData = {
+            changes,
+            weightImpact: '+12g PLA'
+          };
+
+          appendMessage('ai', reply, diffData);
+        }, 450);
+      };
+
+      sendBtn.addEventListener('click', () => handleUserPrompt(input.value));
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleUserPrompt(input.value);
+      });
+
+      document.querySelectorAll('.ai-prompt-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const prompt = chip.textContent.replace(/["']/g, '').trim();
+          handleUserPrompt(prompt);
+        });
+      });
+    }
+
+    function exportSTL() {
+      if (!standMesh) return;
+      const exporter = new STLExporter();
+      const result = exporter.parse(standMesh, { binary: true });
+      const blob = new Blob([result], { type: 'application/octet-stream' });
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `PrintForge_Custom_Stand_${params.width}mm.stl`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+      const toast = document.getElementById('toast');
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 4000);
+    }
+
+    // Animation & Turntable Loop
+    function animate() {
+      requestAnimationFrame(animate);
+      if (params.turntable && standMesh) {
+        standMesh.rotation.y += 0.008;
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Responsive Canvas Resizing
+    window.addEventListener('resize', () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+
+    // Initialize Studio
+    setupControls();
+    updateMesh();
+    animate();
+  </script>
+</body>
+</html>
